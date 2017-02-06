@@ -126,7 +126,7 @@ end
 def sum_matrix(m)
   array = m.flatten
 
-  array.reduce(0) { |sum, x| sum + x }
+  array.reduce(&:+)
 end
 
 def sum_matrix_2(m)
@@ -145,7 +145,7 @@ def matrix_bombing_plan(matrix)
     row.each_with_index do |_, index_col|
       bombed_matrix = bomb_matrix(matrix, index_row, index_col)
 
-      result[[index_row, index_col]] = sum_matrix_2(bombed_matrix)
+      result[[index_row, index_col]] = sum_matrix(bombed_matrix)
     end
   end
   result
@@ -179,8 +179,9 @@ def bomb_matrix(matrix, x, y)
 
   matrix.each_with_index do |row, index_row|
     row.each_with_index do |value, index_col|
-      if neighbours.include?([index_row, index_col]) && value >= target_value
+      if neighbours.include?([index_row, index_col])
         value -= target_value
+        value = 0 if value < 0
       end
       bombed_matrix[index_row] ||= []
       bombed_matrix[index_row][index_col] ||= value
