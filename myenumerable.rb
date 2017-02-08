@@ -20,11 +20,33 @@ module MyEnumerable
     result
   end
 
+  def first
+    each { |el| return el }
+  end
+
+  def first_2
+    found = nil
+    each do |element|
+      found = element
+      break
+    end
+    found
+  end
+
   def reduce(initial = nil)
-    if initial
-      each { |item| initial = yield(initial, item) }
-    else
-      initial = self.arr.first
+    # initial = nil is for the user to have the option to start the reduce from
+    # wherever they want
+    if initial.nil?
+      ignore_first = true
+      initial = first
+    end
+    index = 0
+
+    each do |item|
+      unless ignore_first && index.zero?
+        initial = yield(initial, item)
+      end
+      index += 1
     end
     initial
   end
@@ -51,23 +73,26 @@ module MyEnumerable
   end
 
   def all_2?
-    each { |n| true if yield(n) }
+    each { |n| return false unless yield(n) }
+
+    true
   end
 
   # Yield each consequative n elements.
   def each_cons(n)
-    result = []
+    original_array = []
     index = 0
+    each { |el| original_array << el }
 
-    while index < n
-      each do |el|
-        result << el
-      end
+    while index <= length - n
+      yield original_array[index...(index + n)]
+      index += 1
     end
+    original_array
   end
 
   def include?(element)
-    # Your code goes here.
+    filter(yield(element)).empty?
   end
 
   # Count the occurences of an element in the collection. If no element is
@@ -135,13 +160,13 @@ end
 class MyArray
   include MyEnumerable
 
-  attr_reader :arr
+  attr_reader :data
 
-  def initialize(arr)
-    @arr = arr
+  def initialize(*data)
+    @data = data
   end
 
   def each(&block)
-    @arr.each(&block)
+    @data.each(&block)
   end
 end

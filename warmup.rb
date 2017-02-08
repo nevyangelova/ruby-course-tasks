@@ -11,6 +11,10 @@ def fact(n)
   sum
 end
 
+def fact_2(n)
+  (1..n).reduce(:*)
+end
+
 def fact_reccursive(n)
   return n * fact_reccursive(n - 1) if n > 1
 
@@ -152,7 +156,7 @@ end
 def count_consonants(str)
   count = 0
   str.each_char do |char|
-    if ('a'..'z').include?(char) && count_vowels(char).zero?
+    if ('a'..'z').include?(char.downcase) && count_vowels(char).zero?
       count += 1
     end
   end
@@ -227,7 +231,7 @@ end
 ######################## Numbers in string ########################
 
 def sum_of_numbers_in_string(str)
-  numbers_in_string = str.split(/[a-zA-Z]/)
+  numbers_in_string = str.split(/[^\d]/)
   number_length = numbers_in_string.length
   index = 0
   sum = 0
