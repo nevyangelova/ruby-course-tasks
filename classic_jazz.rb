@@ -6,7 +6,31 @@ class Song
     @name = name
     @artist = artist
     @genre, @subgenre = genre.split(',').map(&:strip)
-    @tags = tags.split(',') if tags
+    @tags = tags
+  end
+
+  def self.get_data(data, artist_tags)
+    data[3] = '' if data[3].nil?
+    artist_tags.default = []
+    genre_tags = data[2].split(', ').map(&:downcase)
+
+    {
+      name: data[0],
+      artist: data[1],
+      genre: data[2],
+      tags: (data[3].split(', ') + genre_tags + artist_tags[data[1]])
+    }
+  end
+
+  def self.parse(songs_objects, artist_tags)
+    parsed_data = get_data(songs_objects, artist_tags)
+
+    name = parsed_data[:name]
+    artist = parsed_data[:artist]
+    genre = parsed_data[:genre]
+    tags = parsed_data[:tags]
+
+    new(name, artist, genre, tags)
   end
 
   def matches?(criteria)
@@ -15,7 +39,20 @@ class Song
       when :name then name == value
       when :artist then artist == value
       when :genre then genre == value
-      when :tags then tags.any? { |tag| tag == value }
+      when :tags then matches_tags?(value)
+      when :filter then value.call(self)
+      end
+    end
+  end
+
+  def matches_tags?(criteria_tags)
+    criteria_tags = [criteria_tags] if criteria_tags.is_a?(String)
+
+    criteria_tags.all? do |criteria_tag|
+      if criteria_tag.end_with?('!')
+        tags.none? { |tag| criteria_tag[0...-1] == tag }
+      else
+        tags.any? { |tag| criteria_tag == tag }
       end
     end
   end
@@ -23,12 +60,12 @@ end
 
 # Collection of songs
 class Collection
-  attr_reader :songs_objects
+  attr_reader :songs_objects, :artist_tags, :parsed_collection
 
-  def initialize(songs_objects)
+  def initialize(songs_objects, artist_tags)
     @songs_objects = songs_objects
-
-    parse_collection
+    @artist_tags = artist_tags
+    @parsed_collection = parse_collection
   end
 
   def split_in_songs
@@ -38,13 +75,13 @@ class Collection
   end
 
   def parse_collection
-    split_in_songs.map do |name, artist, genre, tags|
-      Song.new(name, artist, genre, tags)
+    split_in_songs.map do |data|
+      Song.parse(data, artist_tags)
     end
   end
 
   def find(criteria)
-    parse_collection.select { |song| song.matches?(criteria) }
+    parsed_collection.select { |song| song.matches?(criteria) }
   end
 end
 
@@ -69,3 +106,8 @@ end
 #   Toccata e Fuga.         Bach.         Classical, Baroque. popular
 #   Goldberg Variations.    Bach.         Classical, Baroque
 #   Eine Kleine Nachtmusik. Mozart.       Classical.          popular, violin"
+
+# hashss = {
+#   'John Coltrane' => %w[saxophone],
+#   'Bach' => %w[piano polyphony],
+# }
