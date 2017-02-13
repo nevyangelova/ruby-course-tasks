@@ -46,7 +46,7 @@ class Song
   end
 
   def matches_tags?(criteria_tags)
-    criteria_tags = [criteria_tags] if criteria_tags.is_a?(String)
+    criteria_tags = [criteria_tags].flatten
 
     criteria_tags.all? do |criteria_tag|
       if criteria_tag.end_with?('!')

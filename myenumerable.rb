@@ -9,11 +9,15 @@ module MyEnumerable
   def filter
     result = []
 
-    each { |element| result << element if yield element }
+    each { |element| result << element unless yield(element) }
     result
   end
 
-  def reject
+  def reject(&block)
+    select { |element| !block.call(element) }
+  end
+
+  def select
     result = []
 
     each { |element| result << element if yield element }
@@ -34,11 +38,9 @@ module MyEnumerable
   end
 
   def reduce(initial = nil)
-    # initial = nil is for the user to have the option to start the reduce from
-    # wherever they want
     if initial.nil?
-      ignore_first = true
       initial = first
+      ignore_first = true
     end
     index = 0
 
@@ -51,15 +53,20 @@ module MyEnumerable
     initial
   end
 
-  def any?(&block)
-    !filter(&block).empty?
+  def reduce_2(initial = nil)
+    each.to_a.unshift(initial) if initial
+    each { |item| initial = yield(initial, item) }
+    initial
   end
 
-  def one?(&block)
-    filter(&block).size == 1
+  def any?
+    each do |el|
+      return true if yield(el)
+    end
+    false
   end
 
-  def one_2?
+  def one?
     result = []
 
     each do |el|
@@ -69,7 +76,7 @@ module MyEnumerable
   end
 
   def all?(&block)
-    filter(&block).size == size
+    select(&block).size == size
   end
 
   def all_2?
@@ -84,7 +91,7 @@ module MyEnumerable
     index = 0
     each { |el| original_array << el }
 
-    while index <= length - n
+    while index <= size - n
       yield original_array[index...(index + n)]
       index += 1
     end
@@ -92,68 +99,92 @@ module MyEnumerable
   end
 
   def include?(element)
-    filter(yield(element)).empty?
+    any? { |n| n == element }
   end
 
-  # Count the occurences of an element in the collection. If no element is
-  # given, count the size of the collection.
-  def count(element = nil)
-    return size if element.nil?
-
-    filter { |x| x == element }.size
+  def count(*args)
+    return size if args.empty?
+    select { |x| x == args[0] }.size
   end
 
-  # Count the size of the collection.
   def size
     map { |_| 1 }.reduce(0, &:+)
   end
 
-  # Groups the collection by result of the block.
-  # Returns a hash where the keys are the evaluated
-  # result from the block and the values are arrays
-  # of elements in the collection that correspond to
-  # the key.
   def group_by
+    hash = Hash.new([])
+
+    each do |el|
+      result = yield(el)
+      hash[result] += [el]
+    end # push in the array that is the value of the hash`s key
+    hash
   end
 
   def min
-    # Your code goes here.
+    reduce do |acc, n|
+      acc < n ? acc : n
+    end
   end
 
   def min_by
-    # Your code goes here.
+    reduce do |acc, n|
+      yield(acc) < yield(n) ? acc : n
+    end
   end
 
   def max
-    # Your code goes here.
+    reduce do |acc, n|
+      acc > n ? acc : n
+    end
   end
 
   def max_by
-    # Your code goes here.
+    reduce do |acc, n|
+      yield(acc) > yield(n) ? acc : n
+    end
   end
 
   def minmax
-    # Your code goes here.
+    [min, max]
   end
 
-  def minmax_by
-    # Your code goes here.
+  def minmax_by(&block)
+    [min_by(&block), max_by(&block)]
   end
 
   def take(n)
-    # Your code goes here.
+    take_while { |_, i| i < n }
   end
 
   def take_while
-    # Your code goes here.
+    array = []
+
+    each.with_index do |n, i|
+      if yield(n, i)
+        array << n
+      else
+        break
+      end
+    end
+    array
   end
 
   def drop(n)
-    # Your code goes here.
+    drop_while { |_, i| i < n }
   end
 
   def drop_while
-    # Your code goes here.
+    index = 0
+
+    each.with_index do |n, i|
+      if yield(n, i)
+        index += 1
+      else
+        break
+      end
+    end
+    each.to_a[index..-1]
   end
 end
 
