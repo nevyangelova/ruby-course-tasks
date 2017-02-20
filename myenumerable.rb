@@ -37,7 +37,7 @@ module MyEnumerable
     found
   end
 
-  def reduce(initial = nil)
+  def reduce(initial = nil, symbol = nil)
     if initial.nil?
       initial = first
       ignore_first = true
@@ -45,10 +45,35 @@ module MyEnumerable
     index = 0
 
     each do |item|
-      unless ignore_first && index.zero?
-        initial = yield(initial, item)
+      if block_given?
+        unless ignore_first && index.zero?
+          initial = yield(initial, item)
+        end
+        index += 1
+      else
+        if symbol == is_a?(Symbol)
+          proc { |initial, current| initial.send(symbol, current) }
+        end
       end
-      index += 1
+    end
+    initial
+  end
+
+  def reduce_3(initial = nil, operation = nil, &block)
+    # finish
+    if operation.nil? && !block_given?
+      operation = initial
+      initial = nil
+    end
+
+    ignore_first = true && initial = first if initial.nil?
+
+    if operation.is_a?(Symbol)
+      block = proc { |initial, value| initial.send(operation, value) }
+    end
+
+    each do |element|
+      initial = block.call(initial, element)
     end
     initial
   end
@@ -87,6 +112,7 @@ module MyEnumerable
 
   # Yield each consequative n elements.
   def each_cons(n)
+    # finish
     original_array = []
     index = 0
     each { |el| original_array << el }
@@ -201,3 +227,7 @@ class MyArray
     @data.each(&block)
   end
 end
+
+a = MyArray.new 1,2,3,4,5,6
+
+p a.drop_while {}
