@@ -169,49 +169,179 @@ end
 
 e = enum_for(:return_primes)
 
-class Queue
-  attr_accessor :data
+######################### Data Sets #########################
+module DataSets
+  class Queue
+    include Enumerable
+    attr_accessor :data
 
-  def initialize(*data)
-    @data = []
-    @data.push(*data)
+    def initialize(*data)
+      @data = []
+      push(*data)
+    end
+
+    def each(&block)
+      return data.reverse.to_enum unless block_given?
+
+      data.each(&block)
+    end
+
+    def pop
+      # prilagame vurhu masiv zatova mojem da vzemem pop directly
+      data.pop
+      # data.delete_at(-1)
+    end
+
+    def push(*elements)
+      elements.each { |x| data.unshift(x) }
+      # this is the array each because elements is array, not the one we impl
+      self
+    end
+
+    def <<(element)
+      push(element)
+      self
+    end
+
+    def elements
+      data.dup
+    end
+
+    def inspect
+      str = data.join(' ')
+      "Queue <{#{str}}>"
+    end
+
+    def empty?
+      data.empty?
+    end
   end
 
-  def each(&block)
-    data.each(&block)
+  class Stack
+    include Enumerable
+    attr_accessor :data
+
+    def initialize(*data)
+      @data = []
+      push(*data)
+    end
+
+    def each(&block)
+      # returns enum_for(:each) because to_enum has default :each & checks with
+      # the closest each which is ours and it makes recursive function
+      return to_enum unless block_given?
+
+      data.reverse.each(&block)
+    end
+
+    def pop
+      data.pop
+      # data.delete_at(-1)
+    end
+
+    def push(*elements)
+      data.push(*elements)
+      self
+    end
+
+    def <<(element)
+      push(element)
+      self
+    end
+
+    def elements
+      args.dup
+    end
+
+    def inspect
+      str = args.join(' ')
+      "Stack <{#{str}}>"
+    end
+
+    def empty?
+      args.empty?
+    end
   end
 
-  def pop
-    data.pop
+  class Set
+    include Enumerable
+    attr_accessor :data
+
+    def initialize
+      @data = []
+    end
+
+    def each(&block)
+      return data.to_enum unless block_given?
+
+      data.each(&block)
+      # data.each { |el| yield(el) }
+    end
+
+    def pop
+      data.pop
+      # data.delete_at(-1)
+    end
+
+    def push(*elements)
+      elements.each { |x| data.push(x) unless data.include?(x) }
+      self
+    end
+
+    def <<(element)
+      data.push(element)
+      self
+    end
+
+    def elements
+      data.dup
+    end
+
+    def inspect
+      str = data.join(' ')
+      "Set <{#{str}}>"
+    end
+
+    def empty?
+      data.empty?
+    end
   end
 
-  def push(element)
-    data.unshift(element)
-    self
-  end
-end
-
-class Stack
-  attr_accessor :data
-
-  def initialize
-    @data = []
+  def chain(data1, data2)
+    result = data1.to_a.concat(data2.to_a)
+    result.to_enum
   end
 
-  def each(&block)
-    data.each(&block)
+  def compress(data, mask)
+    arr = []
+    data.zip(mask).each do |key, value|
+      if value == true
+        arr << key
+      end
+    end
+    arr.to_enum
   end
 
-  def pop
-    data.pop
+  def unite(iterable1, iterable2)
+    arr = []
+    iterable1.zip(iterable2).each { |n, i| arr.push [n, i] }
+    arr.to_enum
   end
 
-  def push(*elements)
-    data.push(elements)
-    self
+  def cycle(iterable)
+    Enumerator.new do |y|
+      # yielder is the object that the Enumerator give you
+      # it keeps the elements that enumerator gets out and makes them to_enum
+      loop do
+        iterable.each do |el|
+          y << el
+        end
+      end
+    end
   end
-end
 
-class Set
-  
+  def infinite_columns(matrix)
+    transposed = matrix.transpose.flatten
+    cycle(transposed)
+  end
 end

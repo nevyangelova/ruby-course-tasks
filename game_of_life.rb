@@ -15,35 +15,34 @@ module GameOfLife
     end
 
     def [](x, y)
-      data[x, y].alive?(x, y)
+      alive?(x, y)
     end
 
     def next_generation
       survivors = []
-      @data.each do |x, y|
-        survivors << [x, y] if alive?(x, y) || will_be_born?(x, y) || will_survive?(x, y)
+
+      data.each do |x, y|
+        survivors << [x, y] if will_be_born?(x, y) || will_survive?(x, y)
+        survivors.push(*candidates(x, y))
       end
 
-      Board.new(*survivors) # new instance with coordinates after calculations
+      Board.new(*survivors.uniq)
+    end
+
+    def candidates(x, y)
+      neighbours(x, y).select { |i, j| will_be_born?(i, j) }
     end
 
     def neighbours(x, y)
-      possible_neighbours = [
+      [
         [x - 1, y - 1], [x - 1, y], [x - 1, y + 1],
         [x + 1, y - 1], [x + 1, y], [x + 1, y + 1],
         [x, y - 1], [x, y + 1]
       ]
-      index = 0
-      alive_neighbours = []
+    end
 
-      possible_neighbours.each_with_index do |_, ind|
-        i, j = possible_neighbours[ind]
-        if alive?(i, j)
-          alive_neighbours << [i, j]
-        end
-        index += 1
-      end
-      alive_neighbours
+    def alive_neighbours(x, y)
+      neighbours(x, y).select { |i, j| alive?(i, j) }
     end
 
     def alive?(x, y)
@@ -51,11 +50,11 @@ module GameOfLife
     end
 
     def will_survive?(x, y)
-      neighbours(x, y).count == (2..3) && alive?(x, y)
+      (2..3).cover?(alive_neighbours(x, y).count) && alive?(x, y)
     end
 
     def will_be_born?(x, y)
-      neighbours(x, y).count == 3 && !alive?(x, y)
+      alive_neighbours(x, y).count == 3 && !alive?(x, y)
     end
   end
 end
