@@ -66,7 +66,7 @@ module MyEnumerable
       initial = nil
     end
 
-    ignore_first = true && initial = first if initial.nil?
+    ignore_first = true && initial == first if initial.nil?
 
     if operation.is_a?(Symbol)
       block = proc { |initial, value| initial.send(operation, value) }

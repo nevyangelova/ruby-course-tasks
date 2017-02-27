@@ -3,7 +3,6 @@ module GameOfLife
   # Boards constructor
   class Board
     include Enumerable
-
     attr_accessor :data
 
     def initialize(*data)

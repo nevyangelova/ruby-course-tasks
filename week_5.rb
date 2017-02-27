@@ -21,12 +21,10 @@ def self.method_missing(*args)
 end
 
 module Enumerable
-  # finish
-  def split_up(lengths:, step: :length, pad: [])
-    if step == length
-      each_slice(lengths)
-    elsif step != length
-      slice(step..)
-    end
+  def split_up(lengths:, step1: nil, pad: [])
+    step1 ||= lengths
+    result = each_slice(step1).to_a
+    result[-1] = result[-1].push(*pad)
+    result.map { |subarr| subarr.take(lengths) }
   end
 end
