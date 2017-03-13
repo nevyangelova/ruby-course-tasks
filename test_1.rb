@@ -196,3 +196,53 @@ module Friendship
     end
   end
 end
+
+#############################################################################
+
+class Podcast
+  attr_accessor :name, :episodes, :count
+  def initialize(name)
+    @name = name
+    @episodes = []
+    @count = 1
+  end
+
+  def <<(episode)
+    episode.id = count
+    episodes << episode
+    self.count += 1
+  end
+
+  def find(criteria)
+    episodes.select { |epidose| epidose.matches?(criteria) }
+  end
+
+  def info
+    text = "Podcast: #{name}\nTotal episodes: #{episodes.size}\nTotal duration: #{episodes.map(&:minutes).reduce(:+)}\n"
+
+    episodes.each do |e|
+      text += "==========\nEpisode #{e.id}\nName: #{e.name}\n#{e.description}\nDuration: #{e.minutes} minutes\n"
+    end
+
+    text
+  end
+end
+
+class Episode
+  attr_accessor :id, :name, :description, :minutes
+
+  def initialize(name, description, minutes)
+    @name = name
+    @description = description
+    @minutes = minutes
+  end
+
+  def matches?(criteria)
+    criteria.all? do |key, value|
+      case key
+      when :name then name.casecmp(value).zero? || value.split('').all? { |word| name.split('').include?(word) }
+      when :description then value.all? { |word| description.split(' ').include?(word) }
+      end
+    end
+  end
+end
