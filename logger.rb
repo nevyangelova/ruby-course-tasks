@@ -49,3 +49,58 @@ class Logger
     @object.puts(message)
   end
 end
+
+LOGGER = Cool::Logger.instance
+LOGGER.log('=' * 10)
+
+###################### Tests ######################
+class Random
+  def multiply
+    random * 2
+  end
+
+  def random
+    rand 2
+  end
+end
+
+generator = Random.new
+
+# test when 1
+def generator.random
+  1
+end
+
+generator.multiply.zero?
+
+# test when 0
+def generator.random
+  0
+end
+
+generator.multiply.zero?
+
+# Add more classes
+class Animal
+  attr_reader :name
+
+  def initialize(name)
+    @name = name
+  end
+
+  def scream
+    'ROAAR' + name
+  end
+end
+
+# Test 1
+pesho = Animal.new('Pesho')
+pesho.scream == 'ROAARPesho'
+
+# Test 2
+stamat = Animal.new('Stamat')
+def stamat.name
+  'Stamat'
+end
+
+stamat.scream == 'ROAARRStamat'

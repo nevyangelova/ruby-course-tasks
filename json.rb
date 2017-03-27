@@ -34,3 +34,41 @@ module My
     end
   end
 end
+
+####################### Keyword args ##############################
+
+class Ninja
+  def name(first_name, last_name, fullname: false)
+    if fullname
+      "#{first_name} #{last_name}"
+    else
+      first_name
+    end
+  end
+
+  def weapons(hash, weapon = 'spoon')
+    str = "I have a #{weapon}"
+    hash.each do |option, value|
+      str += "\n#{weapon} has #{option}: #{value}"
+    end
+    str
+  end
+end
+
+pesho = Ninja.new
+puts pesho.weapons size: '10', history: 'Ancient spoon from Galifrey'
+puts pesho.name('Petur', 'Petrov')
+puts pesho.name 'Petur', 'Petrov'
+
+def calculate(grade:, height:, weigth:)
+  grade + height + weigth
+end
+
+p calculate(grade: 100, height: 200, weigth: 300)
+
+p 'Keywords test: '
+def keywords(age, **kws)
+  kws
+end
+
+p keywords(20, name: 'Pesho', last_name: 'Petrov', had_lunch: true)
