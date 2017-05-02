@@ -19,7 +19,7 @@ module GameOfLife
 
     def next_generation
       survivors = []
-
+      # use another enumerable funciton instead
       data.each do |x, y|
         survivors << [x, y] if will_be_born?(x, y) || will_survive?(x, y)
         survivors.push(*candidates(x, y))
@@ -63,3 +63,4 @@ board = GameOfLife::Board.new [1, 2], [1, 3]
 board.each do |x, y|
   puts "The cell at (#{x}, #{y}) is alive"
 end
+# Excellent
